@@ -1,0 +1,164 @@
+﻿@page "/customers/update/{customerId:guid}"
+@using Mc2.CrudTest.Presentation.Shared.Dtos
+@using System.Net
+@using System.Text.Json
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h3>Update Customer</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+
+<EditForm Model="customer" OnValidSubmit="SubmitUpdateCustomer">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="firstName" class="form-label">First Name</label>
+            <InputText id="firstName" @bind-Value="customer.FirstName" class="form-control" />
+            <ValidationMessage For="@(() => customer.FirstName)" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="lastName" class="form-label">Last Name</label>
+            <InputText id="lastName" @bind-Value="customer.LastName" class="form-control" />
+            <ValidationMessage For="@(() => customer.LastName)" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="dateOfBirth" class="form-label">Date of Birth</label>
+            <InputDate id="dateOfBirth" @bind-Value="customer.DateOfBirth" class="form-control" />
+            <ValidationMessage For="@(() => customer.DateOfBirth)" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label for="phoneNumber" class="form-label">Phone Number</label>
+            <InputText id="phoneNumber" @bind-Value="customer.PhoneNumber" class="form-control" />
+            <ValidationMessage For="@(() => customer.PhoneNumber)" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="email" class="form-label">Email</label>
+            <InputText id="email" @bind-Value="customer.Email" class="form-control" @oninput="CheckUniqueEmail" />
+            <ValidationMessage For="@(() => customer.Email)" />
+            @if (!isEmailUnique)
+            {
+                <div class="validation-message">Email already exists.</div>
+            }
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label for="bankAccountNumber" class="form-label">Bank Account Number</label>
+            <InputText id="bankAccountNumber" @bind-Value="customer.BankAccountNumber" class="form-control" />
+            <ValidationMessage For="@(() => customer.BankAccountNumber)" />
+        </div>
+    </div>
+
+    <button type="submit" disabled="@isProcessing" class="btn btn-primary">Update</button>
+    <button type="button" class="btn btn-danger" @onclick="Back">Cancel</button>
+</EditForm>
+
+@code {
+    private CustomerDto customer = new CustomerDto();
+    private string errorMessage;
+    private bool isEmailUnique = true;
+    private bool isProcessing = false;
+    private bool isSubmitted = false;
+    [Parameter] public Guid customerId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCustomerData();
+    }
+
+    private async Task LoadCustomerData()
+    {
+        try
+        {
+            var response = await Http.GetFromJsonAsync<CustomerDto>($"api/customers/{customerId}");
+            if (response != null)
+            {
+                customer = response;
+            }
+            else
+            {
+                errorMessage = "Customer not found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading customer data: {ex.Message}";
+        }
+    }
+
+    private async Task SubmitUpdateCustomer()
+    {
+        isSubmitted = true;
+        isProcessing = true;
+
+        try
+        {
+            if (!isEmailUnique)
+            {
+                return;
+            }
+
+            var response = await Http.PutAsJsonAsync($"api/customers/{customer.Id}", customer);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Back();
+            }
+            else if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                var responseMessage = await response.Content.ReadAsStringAsync();
+                var errorResponse = JsonSerializer.Deserialize<ValidationErrorResponseDto>(responseMessage, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (errorResponse != null && errorResponse?.Errors != null)
+                {
+                    errorMessage = errorResponse.Errors;
+                }
+                else
+                {
+                    errorMessage = "An unknown validation error occurred.";
+                }
+            }
+            else
+            {
+                errorMessage = "An unexpected error occurred. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An unexpected error occurred: " + ex.Message;
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task CheckUniqueEmail(ChangeEventArgs e)
+    {
+        var email = e.Value.ToString();
+        var response = await Http.GetAsync($"api/customers/check-email?email={email}&id={customer.Id}");
+        var emailExists = await response.Content.ReadFromJsonAsync<bool>();
+
+        isEmailUnique = !emailExists;
+    }
+
+    private void Back()
+    {
+        NavigationManager.NavigateTo("/customers");
+    }
+}

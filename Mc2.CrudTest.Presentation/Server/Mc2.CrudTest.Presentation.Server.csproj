@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Mc2.CrudTest.Application\Mc2.CrudTest.Application.csproj" />
+    <ProjectReference Include="..\..\Mc2.CrudTest.Infrastructure\Mc2.CrudTest.Infrastructure.csproj" />
+    <ProjectReference Include="..\Client\Mc2.CrudTest.Presentation.Client.csproj" />
+    <ProjectReference Include="..\Shared\Mc2.CrudTest.Presentation.Shared.csproj" />
+  </ItemGroup>
+
+
+</Project>

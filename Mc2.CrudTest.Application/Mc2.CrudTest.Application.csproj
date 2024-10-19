@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Features\Customer\Dtos\CustomerDto.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ardalis.GuardClauses" Version="5.0.0" />
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.10.0" />
+    <PackageReference Include="IbanNet.DependencyInjection.ServiceProvider" Version="5.16.0" />
+    <PackageReference Include="IbanNet.FluentValidation" Version="5.16.0" />
+    <PackageReference Include="libphonenumber-csharp" Version="8.13.47" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mc2.CrudTest.Domain\Mc2.CrudTest.Domain.csproj" />
+    <ProjectReference Include="..\Mc2.CrudTest.Presentation\Shared\Mc2.CrudTest.Presentation.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

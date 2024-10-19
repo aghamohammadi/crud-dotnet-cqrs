@@ -1,0 +1,27 @@
+version: '3.8'
+
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=123AAASSS!!@#
+    ports:
+      - "1450:1433"
+
+  webapp:
+    build:
+      context: .
+      dockerfile: Mc2.CrudTest.Presentation/Server/Dockerfile
+    container_name: blazor-webapp
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=CrudTest;User=sa;Password=123AAASSS!!@#;Trusted_Connection=False;TrustServerCertificate=True;
+    depends_on:
+      - sqlserver
+
+   

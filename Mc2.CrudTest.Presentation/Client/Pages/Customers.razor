@@ -1,0 +1,110 @@
+﻿@page "/customers"
+@using Mc2.CrudTest.Presentation.Shared.Dtos
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h3>Customers</h3>
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+
+<div class="my-3">
+    <button @onclick="NavigateToCreate" class="btn btn-success">Create New Customer</button>
+</div>
+
+
+
+@if (customers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Date of Birth</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>BankAccountNumber</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var customer in customers)
+        {
+            <tr>
+                <td>@customer.FirstName</td>
+                <td>@customer.LastName</td>
+                <td>@customer.DateOfBirth</td>
+                <td>@customer.Email</td>
+                <td>@customer.PhoneNumber</td>
+                <td>@customer.BankAccountNumber</td>
+                <td>
+                    <button @onclick="() => UpdateCustomer(customer.Id)" class="btn btn-info">Update</button>
+                        <button @onclick="() => ConfirmDelete(customer.Id)" class="btn btn-danger">Delete</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <ConfirmDeleteModal IsVisible="isModalVisible" OnConfirm="OnConfirmDelete" />
+
+}
+
+@code {
+    private List<CustomerDto> customers;
+    private bool isModalVisible = false;
+    private Guid customerIdToDelete;
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = await Http.GetFromJsonAsync<List<CustomerDto>>("api/customers");
+    }
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/customers/create");
+    }
+
+    private void UpdateCustomer(Guid id)
+    {
+    // Navigate to the update page
+        NavigationManager.NavigateTo($"/customers/update/{id}");
+    }
+
+    private void ConfirmDelete(Guid customerId)
+    {
+        customerIdToDelete = customerId;
+        isModalVisible = true;
+    }
+
+    private async Task OnConfirmDelete(bool confirmed)
+    {
+        if (confirmed)
+        {
+            var result = await Http.DeleteAsync($"api/customers/{customerIdToDelete}");
+            if (result.IsSuccessStatusCode)
+            {
+                errorMessage="";
+    
+                // Reload the customer list after delete
+                await OnInitializedAsync();
+            }
+            else
+            {
+                // Handle delete error
+                errorMessage="Error deleting customer";
+            }
+        }
+    }
+
+
+}
